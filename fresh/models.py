@@ -1,12 +1,13 @@
 # This is an auto-generated Django model module.
 # You'll have to do the following manually to clean this up:
 #   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
+#   * Make sure each model has one field with unique=True
 #   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 from django.conf import settings
+from datetime import date
 
 
 class StaffInfo(models.Model):
@@ -18,6 +19,13 @@ class StaffInfo(models.Model):
     s_birth = models.DateTimeField(verbose_name="生日", blank=True, null=True)
     s_department = models.CharField(max_length=16, verbose_name="所属部门", blank=True, null=True)
     s_job = models.TextField(verbose_name="职务", blank=True, null=True)  # This field type is a guess.
+    count = 0
+
+    def save(self):
+        if not self.s_id:
+            count += 1
+            self.s_id = s_department[:2] + str(count)
+        super().save()
 
     class Meta:
         verbose_name = '员工信息'
@@ -45,8 +53,8 @@ class GoodsInfo(models.Model):
     g_life = models.DateTimeField(verbose_name="保质期", blank=True, null=True)
     g_loc = models.TextField(verbose_name="地址", blank=True, null=True)  # This field type is a guess.
     g_vendor = models.CharField(verbose_name="供应商", max_length=16, blank=True, null=True)
-    g_tempreture = models.FloatField(verbose_name="储存温度", blank=True, null=True)
-    g_humidity = models.FloatField(verbose_name="储存湿度", blank=True, null=True)
+    g_tempreture = models.FloatField(verbose_name="储存温度", null=True, default=5)
+    g_humidity = models.FloatField(verbose_name="储存湿度", null=True, default=85)
 
     class Meta:
         verbose_name = '货物信息'
@@ -104,12 +112,24 @@ class OrderInfo(models.Model):
     out = models.ForeignKey('OutboundRecord', verbose_name="出库编号", on_delete=models.CASCADE)
     transport = models.ForeignKey('TransportRecord', verbose_name="运输编码", on_delete=models.CASCADE)
     g = models.ForeignKey('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE)
-    order_time = models.DateTimeField(verbose_name="生效时间", blank=True, null=True)
+    order_time = models.DateTimeField(auto_now=True, verbose_name="生效时间", null=True)
     order_quantity = models.SmallIntegerField(verbose_name="订单数量", blank=True, null=True)
     order_realprice = models.DecimalField(verbose_name="实际售价", max_digits=6, decimal_places=2, blank=True, null=True)
     client_name = models.CharField(max_length=16, verbose_name="客户姓名", blank=True, null=True)
     client_addr = models.CharField(max_length=16, verbose_name="客户地址", blank=True, null=True)
     client_tel = models.CharField(max_length=11, verbose_name="客户电话", blank=True, null=True)
+    count = 0
+    pre = 0
+
+    def save(self):
+        today = date.today()
+        if today != pre:
+            count = 0
+        if not self.order_id:
+            count += 1
+            self.order_id = date.today() + str(count)
+        pre = today
+        super().save()
 
     class Meta:
         verbose_name = '订单信息'

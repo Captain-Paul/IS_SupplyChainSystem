@@ -23,6 +23,7 @@ class GoodsInfoSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class WarehouseInfoSerializer(serializers.ModelSerializer):
+    wh_chief = serializers.ReadOnlyField(source="wh_chief.username")
 
     class Meta:
         model = WarehouseInfo

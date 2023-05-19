@@ -50,7 +50,8 @@ class GoodsInfo(models.Model):
     g_brand = models.CharField(max_length=16, verbose_name="货物品牌", blank=True, null=True)
     g_category = models.CharField(max_length=16, verbose_name="货物种类", blank=True, null=True)
     g_name = models.CharField(max_length=16, verbose_name="货物名称", blank=True, null=True)
-    g_life = models.DateTimeField(verbose_name="保质期", blank=True, null=True)
+    g_production_time = models.DateField(verbose_name="生产日期", blank=True, null=True)
+    g_life = models.IntegerField(verbose_name="保质期", blank=True, null=True)
     g_loc = models.TextField(verbose_name="地址", blank=True, null=True)  # This field type is a guess.
     g_vendor = models.CharField(verbose_name="供应商", max_length=16, blank=True, null=True)
     g_tempreture = models.FloatField(verbose_name="储存温度", null=True, default=5)

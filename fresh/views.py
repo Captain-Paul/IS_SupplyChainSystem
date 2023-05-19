@@ -1,6 +1,8 @@
 from django.shortcuts import render
 
 from django.db.models.signals import post_save
+from django.db.models import Q, F, ExpressionWrapper
+from django.db.models.fields import DurationField
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
@@ -18,6 +20,7 @@ from .permissions import IsOwnerReadOnly
 from .models import *
 from .serializers import *
 import json
+from datetime import date, timedelta
 
 
 class FreshPagination(PageNumberPagination):
@@ -78,11 +81,26 @@ class GoodsDetail(APIView):
         :return:
         """
         g_id = request.GET.get('g_id')
-        obj = self.get_object(pk=g_id)
-        if not obj:
-            return Response(data={"msg": "没有此货物信息"}, status=status.HTTP_404_NOT_FOUND)
-        s = GoodsInfoSerializer(instance=obj)
-        return Response(s.data, status=status.HTTP_200_OK)
+        if g_id:
+            obj = self.get_object(pk=g_id)
+            if not obj:
+                return Response(data={"msg": "没有此货物信息"}, status=status.HTTP_404_NOT_FOUND)
+            s = GoodsInfoSerializer(instance=obj)
+            return Response(s.data, status=status.HTTP_200_OK)
+
+        near_due = request.GET.get('near_due')
+        if near_due:
+            today = date.today()
+            one_week_later = today + timedelta(days=7)
+
+            days = ExpressionWrapper(F('g_life'), output_field=DurationField())
+            goods = GoodsInfo.objects.filter(
+                g_production_time__lte=one_week_later - days
+            )
+            if not goods:
+                return Response(data={"msg": "没有此货物信息"}, status=status.HTTP_404_NOT_FOUND)
+            s = GoodsInfoSerializer(instance=goods, many=True)
+            return Response(s.data, status=status.HTTP_200_OK)
 
     def put(self, request):
         body = request.body
@@ -248,7 +266,7 @@ class OrderDetail(APIView):
 
     def delete(self, request):
         """
-
+        Delete objects according to order_id.
         :param request:
         :param pk:
         :return:

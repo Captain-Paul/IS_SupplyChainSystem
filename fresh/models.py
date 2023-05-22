@@ -50,7 +50,6 @@ class GoodsInfo(models.Model):
     g_brand = models.CharField(max_length=16, verbose_name="货物品牌", blank=True, null=True)
     g_category = models.CharField(max_length=16, verbose_name="货物种类", blank=True, null=True)
     g_name = models.CharField(max_length=16, verbose_name="货物名称", blank=True, null=True)
-    g_production_time = models.DateField(verbose_name="生产日期", blank=True, null=True)
     g_life = models.IntegerField(verbose_name="保质期", blank=True, null=True)
     g_loc = models.TextField(verbose_name="地址", blank=True, null=True)  # This field type is a guess.
     g_vendor = models.CharField(verbose_name="供应商", max_length=16, blank=True, null=True)
@@ -79,12 +78,12 @@ class WarehouseInfo(models.Model):
 
 
 class BuyRecord(models.Model):
-    g = models.OneToOneField('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE, primary_key=True)
+    g = models.ForeignKey('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE)
     wh = models.ForeignKey('WarehouseInfo', verbose_name="仓库编码", on_delete=models.CASCADE)
     buy_id = models.CharField(max_length=8, verbose_name="批次编码", blank=True, null=True)
     buy_quantity = models.SmallIntegerField(verbose_name="采购数量", blank=True, null=True)
-    buy_intime = models.DateTimeField(verbose_name="到达日期", blank=True, null=True)
-    buy_pdate = models.DateTimeField(verbose_name="生产日期", blank=True, null=True)
+    buy_intime = models.DateField(verbose_name="到达日期", blank=True, null=True)
+    buy_pdate = models.DateField(verbose_name="生产日期", blank=True, null=True)
     buy_price = models.BigIntegerField(verbose_name="采购价格", blank=True, null=True)
     buy_valid = models.CharField(max_length=4, verbose_name="是否生效", blank=True, null=True)
     return_reason = models.TextField(verbose_name="退货原因", db_collation='Chinese_PRC_CI_AS', blank=True, null=True)  # This field type is a guess.
@@ -93,7 +92,9 @@ class BuyRecord(models.Model):
         verbose_name = '采购记录'
         verbose_name_plural = verbose_name
         db_table = 'buy_record'
-        unique_together = (('g', 'wh'),)
+        constraints = [
+            models.UniqueConstraint(fields=['g', 'buy_id'], name='unique_primary_keys_buy')
+        ]
 
 
 class CountRecord(models.Model):
@@ -107,7 +108,9 @@ class CountRecord(models.Model):
         verbose_name = '盘点记录'
         verbose_name_plural = verbose_name
         db_table = 'count_record'
-        unique_together = (('g', 'wh'),)
+        constraints = [
+            models.UniqueConstraint(fields=['g', 'wh'], name='unique_primary_keys_count')
+        ]
 
 
 class OrderInfo(models.Model):
@@ -162,7 +165,9 @@ class StockInfo(models.Model):
         verbose_name = '库存信息'
         verbose_name_plural = verbose_name
         db_table = 'stock_info'
-        unique_together = (('wh', 'g'),)
+        constraints = [
+            models.UniqueConstraint(fields=['g', 'wh'], name='unique_primary_keys_stock')
+        ]
 
 
 class TransportationInfo(models.Model):

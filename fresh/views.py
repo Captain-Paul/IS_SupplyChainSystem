@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 from django.db.models.signals import post_save
-from django.db.models import Q, F, ExpressionWrapper
+from django.db.models import Q, F, ExpressionWrapper, Func
 from django.db.models.fields import DurationField
 from django.contrib.auth.models import User
 from django.dispatch import receiver
@@ -86,20 +86,6 @@ class GoodsDetail(APIView):
             if not obj:
                 return Response(data={"msg": "没有此货物信息"}, status=status.HTTP_404_NOT_FOUND)
             s = GoodsInfoSerializer(instance=obj)
-            return Response(s.data, status=status.HTTP_200_OK)
-
-        near_due = request.GET.get('near_due')
-        if near_due:
-            today = date.today()
-            one_week_later = today + timedelta(days=7)
-
-            days = ExpressionWrapper(F('g_life'), output_field=DurationField())
-            goods = GoodsInfo.objects.filter(
-                g_production_time__lte=one_week_later - days
-            )
-            if not goods:
-                return Response(data={"msg": "没有此货物信息"}, status=status.HTTP_404_NOT_FOUND)
-            s = GoodsInfoSerializer(instance=goods, many=True)
             return Response(s.data, status=status.HTTP_200_OK)
 
     def put(self, request):
@@ -234,12 +220,26 @@ class OrderDetail(APIView):
         :param request:
         :return:
         """
-        order_id = request.GET.get('order_id')
-        obj = self.get_object(pk=order_id)
-        if not obj:
-            return Response(data={"msg": "没有此订单信息"}, status=status.HTTP_404_NOT_FOUND)
-        s = OrderInfoSerializer(instance=obj)
-        return Response(s.data, status=status.HTTP_200_OK)
+        func = request.GET.get('function')
+        if func == "id":
+            order_id = request.GET.get('order_id')
+            obj = self.get_object(pk=order_id)
+            if not obj:
+                return Response(data={"msg": "没有此订单信息"}, status=status.HTTP_404_NOT_FOUND)
+            s = OrderInfoSerializer(instance=obj)
+            return Response(s.data, status=status.HTTP_200_OK)
+
+        if func == "latest":
+            today = date.today()
+            one_week_ago = today - timedelta(days=7)
+
+            obj = OrderInfo.objects.filter(
+                order_time__gte=one_week_ago
+            )
+            if not obj:
+                return Response(data={"msg": "最近7天没有订单信息"}, status=status.HTTP_404_NOT_FOUND)
+            s = OrderInfoSerializer(instance=obj)
+            return Response(s.data, status=status.HTTP_200_OK)
 
     def put(self, request):
         """
@@ -283,3 +283,47 @@ class OrderDetail(APIView):
             return Response(data={"msg": "没有此订单信息"}, status=status.HTTP_404_NOT_FOUND)
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BuyList(APIView):
+    def get(self, request):
+        queryset = BuyRecord.objects.all()
+        s = BuyRecordSerializer(instance=queryset, many=True)
+        return Response(s.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        s = BuyRecordSerializer(data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(s.data, status=status.HTTP_201_CREATED)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BuyDetail(APIView):
+    def get(self, request):
+        func = request.GET.get('function')
+
+        # 查询近一周内要过期的货物
+        if func == 'neardue':
+            today = date.today()
+            one_week_later = today + timedelta(days=7)
+
+            days = ExpressionWrapper(F('g__g_life'), output_field=DurationField())
+            obj = BuyRecord.objects.filter(
+                buy_pdate__lte=one_week_later - days
+            )
+            if not obj:
+                return Response(data={"msg": "没有此货物信息"}, status=status.HTTP_404_NOT_FOUND)
+            s = BuyRecordSerializer(instance=obj, many=True)
+            return Response(s.data, status=status.HTTP_200_OK)
+
+        # 查询某一类型货物的采购信息（蔬菜、肉类、乳制品等）
+        if func == "type":
+            goods_type = request.GET.get("goods_type")
+            obj = BuyRecord.objects.filter(
+                g__g_category__exact=goods_type
+            )
+            if not obj:
+                return Response(data={"msg": "没有此货物信息"}, status=status.HTTP_404_NOT_FOUND)
+            s = BuyRecordSerializer(instance=obj, many=True)
+            return Response(s.data, status=status.HTTP_200_OK)

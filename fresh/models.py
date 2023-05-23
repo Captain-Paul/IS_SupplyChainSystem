@@ -65,6 +65,7 @@ class GoodsInfo(models.Model):
 class WarehouseInfo(models.Model):
     wh_id = models.CharField(primary_key=True, max_length=8, verbose_name="仓库编号")
     wh_loc = models.CharField(max_length=100, verbose_name="仓库位置", blank=True, null=True)
+    wh_name = models.CharField(max_length=100, verbose_name="仓库名称", blank=True, null=True)
     # wh_chief = models.CharField(max_length=16, verbose_name="责任人", blank=True, null=True)
     wh_chief = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="责任人", null=True)
 

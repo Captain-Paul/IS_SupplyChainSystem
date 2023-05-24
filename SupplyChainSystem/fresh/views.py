@@ -52,7 +52,8 @@ def user_login(request):
         cursor.close()
         conn.close()
 
-class MyView(View):
+
+class MyView(APIView):
     def dispatch(self, request, *args, **kwargs):
         # 检查用户是否已登录，如果未登录则返回错误响应
         user_id = request.user.id  # 获取当前请求的用户ID
@@ -428,6 +429,7 @@ class OutboundList(APIView):
             s.save()
             return Response(s.data, status=status.HTTP_201_CREATED)
         return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class OutboundDetail(APIView):
     @staticmethod

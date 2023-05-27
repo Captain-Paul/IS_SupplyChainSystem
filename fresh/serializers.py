@@ -4,17 +4,16 @@ from django import forms
 from django.contrib.auth.models import User
 
 
-class StaffInfoSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = StaffInfo
-        fields = "__all__"
-
-class KpiInfoSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = KpiInfo
-        fields = "__all__"
+# class StaffInfoSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = StaffInfo
+#         fields = "__all__"
+#
+# class KpiInfoSerializer(serializers.ModelSerializer):
+#
+#     class Meta:
+#         model = KpiInfo
+#         fields = "__all__"
 
 class GoodsInfoSerializer(serializers.ModelSerializer):
 

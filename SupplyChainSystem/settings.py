@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "fresh.apps.FreshConfig",
+    "Login.apps.LoginConfig",
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders"
@@ -167,10 +168,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
-# 缓存框架, 用以存储用户登陆状态信息
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',  # 这里可以设置任意字符串作为缓存标识
-    }
-}
+# # 缓存框架, 用以存储用户登陆状态信息
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#         'LOCATION': 'unique-snowflake',  # 这里可以设置任意字符串作为缓存标识
+#     }
+# }

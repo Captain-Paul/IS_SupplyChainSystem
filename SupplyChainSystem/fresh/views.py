@@ -21,9 +21,13 @@ from .models import *
 from .serializers import *
 import json
 from datetime import date, timedelta
-# 内存缓存
-from django.core.cache import cache
-import pyodbc
+# 导入员工信息和KPI
+from Login.models import *
+from Login.serializers import *
+
+# # 内存缓存
+# from django.core.cache import cache
+# import pyodbc
 
 class FreshPagination(PageNumberPagination):
     '''
@@ -33,46 +37,45 @@ class FreshPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
+# # 用户登录状态缓存
+# def user_login(request):
+#     """
+#     在登录视图中，在用户成功登录后将登录信息写入缓存。
+#     :param request:
+#     :return:
+#     """
+#     if user and user.is_active:
+#         # 登录成功，将登录信息写入缓存
+#         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=your_db_host;DATABASE=your_db_name;UID=your_db_username;PWD=your_db_password')
+#         cursor = conn.cursor()
+#         cursor.execute(f"SELECT COUNT(*) FROM dbo.[auth_user] WHERE id = '{user.id}'")
+#         result = cursor.fetchone()
+#         if result[0] == 1:  # 用户存在
+#             cache.set(f'user:{user.id}:login', True, timeout=None)  # 缓存永不过期，即在浏览器关闭前一直有效
+#         cursor.close()
+#         conn.close()
+#
+# class Logintest(APIView):
+#     def dispatch(self, request, *args, **kwargs):
+#         # 检查用户是否已登录，如果未登录则返回错误响应
+#         user_id = request.user.id  # 获取当前请求的用户ID
+#         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=your_db_host;DATABASE=your_db_name;UID=your_db_username;PWD=your_db_password')
+#         cursor = conn.cursor()
+#         cursor.execute(f"SELECT COUNT(*) FROM dbo.[auth_user] WHERE id = '{user_id}'")
+#         result = cursor.fetchone()
+#         if result[0] == 1:  # 用户存在
+#             is_logged_in = cache.get(f'user:{user_id}:login', False)  # 从缓存中获取登录信息
+#             if is_logged_in:
+#                 # 用户已经登录，继续处理请求
+#                 cursor.close()
+#                 conn.close()
+#                 return super().dispatch(request, *args, **kwargs)
+#
+#         # 用户未登录或登录信息不正确，返回错误响应
+#         cursor.close()
+#         conn.close()
+#         return HttpResponse('Unauthorized', status=401)
 
-# 用户登录状态缓存
-def user_login(request):
-    """
-    在登录视图中，在用户成功登录后将登录信息写入缓存。
-    :param request:
-    :return:
-    """
-    if user and user.is_active:
-        # 登录成功，将登录信息写入缓存
-        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=your_db_host;DATABASE=your_db_name;UID=your_db_username;PWD=your_db_password')
-        cursor = conn.cursor()
-        cursor.execute(f"SELECT COUNT(*) FROM dbo.[auth_user] WHERE id = '{user.id}'")
-        result = cursor.fetchone()
-        if result[0] == 1:  # 用户存在
-            cache.set(f'user:{user.id}:login', True, timeout=None)  # 缓存永不过期，即在浏览器关闭前一直有效
-        cursor.close()
-        conn.close()
-
-
-class MyView(APIView):
-    def dispatch(self, request, *args, **kwargs):
-        # 检查用户是否已登录，如果未登录则返回错误响应
-        user_id = request.user.id  # 获取当前请求的用户ID
-        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=your_db_host;DATABASE=your_db_name;UID=your_db_username;PWD=your_db_password')
-        cursor = conn.cursor()
-        cursor.execute(f"SELECT COUNT(*) FROM dbo.[auth_user] WHERE id = '{user_id}'")
-        result = cursor.fetchone()
-        if result[0] == 1:  # 用户存在
-            is_logged_in = cache.get(f'user:{user_id}:login', False)  # 从缓存中获取登录信息
-            if is_logged_in:
-                # 用户已经登录，继续处理请求
-                cursor.close()
-                conn.close()
-                return super().dispatch(request, *args, **kwargs)
-
-        # 用户未登录或登录信息不正确，返回错误响应
-        cursor.close()
-        conn.close()
-        return HttpResponse('Unauthorized', status=401)
 
 
 class GoodsList(APIView):
@@ -159,11 +162,21 @@ class GoodsDetail(APIView):
 
 class WarehouseList(APIView):
     def get(self, request):
+        """
+        返回所有仓库信息
+        :param request:
+        :return:
+        """
         queryset = WarehouseInfo.objects.all()
         s = WarehouseInfoSerializer(instance=queryset, many=True)
         return Response(s.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        """
+        添加一条仓库信息
+        :param request:
+        :return:
+        """
         s = WarehouseInfoSerializer(data=request.data)
         if s.is_valid():
             s.save(wh_chief=self.request.user)
@@ -429,7 +442,6 @@ class OutboundList(APIView):
             s.save()
             return Response(s.data, status=status.HTTP_201_CREATED)
         return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class OutboundDetail(APIView):
     @staticmethod

@@ -21,4 +21,12 @@ urlpatterns = [
     path("outbound/list/", views.GoodsList.as_view(), name="outbound-list"),
     path("outbound/detail/", views.GoodsDetail.as_view(), name="outbound-detail"),
 
+    path("transportation/list/", views.TransportationList.as_view(), name="transportation-list"),
+
+    path("transport/list/", views.TransportList.as_view(), name="transport-list"),
+    path("transport/detail/", views.TransportDetail.as_view(), name="transport-detail"),
+
+    path("transfer/list/", views.TransferList.as_view(), name="transfer-list"),
+
+    path("stock/list/", views.StockList.as_view(), name="stock-list")
 ]

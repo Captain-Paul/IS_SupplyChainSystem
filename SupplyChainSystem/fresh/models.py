@@ -10,6 +10,8 @@ from django.conf import settings
 from datetime import date
 
 
+"""要调用save方法的：BuyRecord, OrderInfo"""
+
 # class StaffInfo(models.Model):
 #     s_id = models.CharField(primary_key=True, max_length=8, verbose_name="员工编号")
 #     s_name = models.CharField(max_length=16, verbose_name="员工姓名", blank=True, null=True)
@@ -76,14 +78,11 @@ class WarehouseInfo(models.Model):
         verbose_name_plural = verbose_name
         db_table = 'warehouse_info'
 
-    def __str__(self):
-        return self.name
-
 
 class BuyRecord(models.Model):
     g = models.ForeignKey('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE)
     wh = models.ForeignKey('WarehouseInfo', verbose_name="仓库编码", on_delete=models.CASCADE)
-    buy_id = models.CharField(max_length=8, verbose_name="批次编码", blank=True, null=True)
+    buy_id = models.CharField(max_length=8, verbose_name="批次编码", blank=True)
     buy_quantity = models.SmallIntegerField(verbose_name="采购数量", blank=True, null=True)
     buy_intime = models.DateField(verbose_name="到达日期", blank=True, null=True)
     buy_pdate = models.DateField(verbose_name="生产日期", blank=True, null=True)
@@ -91,17 +90,24 @@ class BuyRecord(models.Model):
     buy_valid = models.CharField(max_length=4, verbose_name="是否生效", blank=True, null=True)
     return_reason = models.TextField(verbose_name="退货原因", db_collation='Chinese_PRC_CI_AS', blank=True, null=True)  # This field type is a guess.
 
+    def save(self, *args, **kwargs):
+        super(BuyRecord, self).save(*args, **kwargs)
+
+        goods, _ = StockInfo.objects.get_or_create(g_id=self.g, wh_id=self.wh)
+        goods.s_quantity += self.buy_quantity
+        goods.save()
+
     class Meta:
         verbose_name = '采购记录'
         verbose_name_plural = verbose_name
         db_table = 'buy_record'
-        constraints = [
-            models.UniqueConstraint(fields=['g', 'buy_id'], name='unique_primary_keys_buy')
-        ]
+        # constraints = [
+        #     models.UniqueConstraint(fields=['g', 'buy_id'], name='unique_primary_keys_buy')
+        # ]
 
 
 class CountRecord(models.Model):
-    g = models.OneToOneField('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE, primary_key=True)
+    g = models.ForeignKey('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE)
     wh = models.ForeignKey('WarehouseInfo', verbose_name="仓库编码", on_delete=models.CASCADE)
     count_date = models.DateField(auto_now_add=True, verbose_name="盘点日期", null=True)
     count_match = models.CharField(max_length=4, verbose_name="是否匹配", blank=True, null=True)
@@ -111,9 +117,6 @@ class CountRecord(models.Model):
         verbose_name = '盘点记录'
         verbose_name_plural = verbose_name
         db_table = 'count_record'
-        constraints = [
-            models.UniqueConstraint(fields=['g', 'wh'], name='unique_primary_keys_count')
-        ]
 
 
 class OrderInfo(models.Model):
@@ -131,7 +134,7 @@ class OrderInfo(models.Model):
     count = 0
     pre = 0
 
-    def save(self):
+    def save(self, *args, **kwargs):
         today = date.today()
         if today != pre:
             count = 0
@@ -139,7 +142,17 @@ class OrderInfo(models.Model):
             count += 1
             self.order_id = date.today() + str(count)  #将id设置为日期+序号
         pre = today
-        super().save()
+        super(OrderInfo, self).save(*args, **kwargs)
+
+        ob, _ = OutboundRecord.objects.get_or_create(out_id=self.out)
+        goods, _ = StockInfo.objects.get_or_create(g_id=self.g, wh_id=ob.wh)
+        goods.s_quantity -= self.order_quantity
+        goods.save()
+
+        trans = TransportRecord()
+        trans.transport_to = self.client_addr
+        trans.wh = ob.wh
+        trans.save()
 
     class Meta:
         verbose_name = '订单信息'
@@ -160,7 +173,7 @@ class OutboundRecord(models.Model):
 
 
 class StockInfo(models.Model):
-    wh = models.OneToOneField('WarehouseInfo', verbose_name="仓库编码", on_delete=models.CASCADE, primary_key=True)
+    wh = models.ForeignKey('WarehouseInfo', verbose_name="仓库编码", on_delete=models.CASCADE)
     g = models.ForeignKey('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE)
     s_quantity = models.SmallIntegerField(verbose_name="库存数量", blank=True, null=True)
 
@@ -186,8 +199,8 @@ class TransportationInfo(models.Model):
 
 
 class TransportRecord(models.Model):
-    transport_id = models.CharField(primary_key=True, max_length=8, verbose_name="运输编码")
-    transportation = models.ForeignKey('TransportationInfo', verbose_name="载具编号", on_delete=models.CASCADE)
+    transport_id = models.AutoField(primary_key=True, verbose_name="运输编码")
+    transportation = models.ForeignKey('TransportationInfo', verbose_name="载具编号", on_delete=models.CASCADE, null=True)
     wh = models.ForeignKey('WarehouseInfo', verbose_name="仓库编码", on_delete=models.CASCADE)
     transport_to = models.CharField(max_length=16, verbose_name="目的地", blank=True, null=True)
     transport_predicatedtime = models.DateTimeField(verbose_name="预计送达时间", blank=True, null=True)

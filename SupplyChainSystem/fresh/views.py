@@ -202,6 +202,7 @@ class WarehouseDetail(APIView):
                 return Response(data={"msg": "没有此仓库信息"}, status=status.HTTP_404_NOT_FOUND)
             s = WarehouseInfoSerializer(instance=obj)
             return Response(s.data, status=status.HTTP_200_OK)
+
         #查询距离接收到的坐标最近的仓库
         if func == 'nearest':
             loc = request.query_params.get('loc', None)  # 获取请求中的经纬度参数
@@ -299,7 +300,7 @@ class OrderDetail(APIView):
 
     def get(self, request):
         """
-
+        查询id、近7天的订单
         :param request:
         :return:
         """
@@ -311,6 +312,7 @@ class OrderDetail(APIView):
                 return Response(data={"msg": "没有此订单信息"}, status=status.HTTP_404_NOT_FOUND)
             s = OrderInfoSerializer(instance=obj)
             return Response(s.data, status=status.HTTP_200_OK)
+
         #查询最近7天的订单
         if func == "latest":
             today = date.today()
@@ -377,6 +379,7 @@ class BuyList(APIView):
     def post(self, request):
         s = BuyRecordSerializer(data=request.data)
         if s.is_valid():
+            print(s)
             s.save()
             return Response(s.data, status=status.HTTP_201_CREATED)
         return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -384,6 +387,11 @@ class BuyList(APIView):
 
 class BuyDetail(APIView):
     def get(self, request):
+        """
+        查询近一周内要过期、某一类型的货物采购记录
+        :param request:
+        :return:
+        """
         func = request.GET.get('function')
 
         # 查询近一周内要过期的货物
@@ -410,6 +418,7 @@ class BuyDetail(APIView):
                 return Response(data={"msg": "没有此货物信息"}, status=status.HTTP_404_NOT_FOUND)
             s = BuyRecordSerializer(instance=obj, many=True)
             return Response(s.data, status=status.HTTP_200_OK)
+
 
 class OutboundList(APIView):
     permission_classes = (IsAuthenticated,)
@@ -443,6 +452,7 @@ class OutboundList(APIView):
             return Response(s.data, status=status.HTTP_201_CREATED)
         return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class OutboundDetail(APIView):
     @staticmethod
     def get_object(pk):
@@ -458,29 +468,104 @@ class OutboundDetail(APIView):
 
     def get(self, request):
         """
-
+        查询id或者近7天的出库记录
         :param request:
         :return:
         """
         func = request.GET.get('function')
+        obj = None
         #按照id查询出库记录
         if func == "id":
             outbound_id = request.GET.get('outbound_id')
             obj = self.get_object(pk=outbound_id)
             if not obj:
                 return Response(data={"msg": "没有此出库记录"}, status=status.HTTP_404_NOT_FOUND)
-            s = OutboundRecordSerializer(instance=obj)
-            return Response(s.data, status=status.HTTP_200_OK)
 
         #查询最近7天的出库记录
         if func == "latest":
             today = date.today()
             one_week_ago = today - timedelta(days=7)
-
             obj = OutboundRecord.objects.filter(
                 out_time__gte=one_week_ago
             )
             if not obj:
                 return Response(data={"msg": "最近7天没有出库记录"}, status=status.HTTP_404_NOT_FOUND)
-            s = OutboundRecordSerializer(instance=obj)
-            return Response(s.data, status=status.HTTP_200_OK)
+
+        s = OutboundRecordSerializer(instance=obj, many=True)
+        return Response(s.data, status=status.HTTP_200_OK)
+
+
+class TransportationList(APIView):
+    def get(self, request):
+        queryset = TransportationInfo.objects.all()
+        s = TransportationInfoSerializer(instance=queryset, many=True)
+        return Response(s.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        s = TransportationInfoSerializer(data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(s.data, status=status.HTTP_201_CREATED)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TransportList(APIView):
+    def get(self, request):
+        queryset = TransportRecord.objects.all()
+        s = TransportRecordSerializer(instance=queryset, many=True)
+        return Response(s.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        s = TransportRecordSerializer(data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(s.data, status=status.HTTP_201_CREATED)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TransportDetail(APIView):
+    def get(self, request):
+        func = request.GET.get('function')
+        queryset = None
+        if func == "loc":
+            loc = request.GET.get('loc')
+            queryset = TransportRecord.objects.filter(transport_to__contains=loc)
+            if not queryset:
+                return Response(data={'msg': "没有送往此地的记录"}, status=status.HTTP_404_NOT_FOUND)
+
+        if func == "id":
+            t_id = request.GET.get('id')
+            queryset = TransportRecord.objects.filter(transportation_id=t_id)
+            if not queryset:
+                return Response(data={'msg': "没有此车的运输记录"}, status=status.HTTP_404_NOT_FOUND)
+
+        s = TransportRecordSerializer(instance=queryset, many=True)
+        return Response(s.data, status=status.HTTP_200_OK)
+
+
+class TransferList(APIView):
+    def get(self, request):
+        queryset = TransferInfo.objects.all()
+        s = TransferInfoSerializer(instance=queryset, many=True)
+        return Response(s.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        s = TransferInfoSerializer(data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(s.data, status=status.HTTP_201_CREATED)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class StockList(APIView):
+    def get(self, request):
+        queryset = TransferInfo.objects.all()
+        s = TransferInfoSerializer(instance=queryset, many=True)
+        return Response(s.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        s = StockInfoSerializer(data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(s.data, status=status.HTTP_201_CREATED)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)

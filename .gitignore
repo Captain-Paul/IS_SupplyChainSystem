@@ -30,3 +30,6 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# 忽略 Python 的编译缓存文件
+**/__pycache__/

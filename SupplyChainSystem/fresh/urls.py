@@ -28,5 +28,7 @@ urlpatterns = [
 
     path("transfer/list/", views.TransferList.as_view(), name="transfer-list"),
 
-    path("stock/list/", views.StockList.as_view(), name="stock-list")
+    path("stock/list/", views.StockList.as_view(), name="stock-list"),
+
+    path("count/list/", views.CountList.as_view(), name="count-list")
 ]

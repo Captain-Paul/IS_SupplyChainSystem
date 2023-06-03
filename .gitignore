@@ -32,4 +32,8 @@ pnpm-debug.log*
 *.sw?
 
 # 忽略 Python 的编译缓存文件
+<<<<<<< HEAD
 **/__pycache__/
+=======
+SupplyChainSystem/__pycache__/
+>>>>>>> main

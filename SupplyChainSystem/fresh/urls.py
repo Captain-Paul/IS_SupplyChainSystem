@@ -18,8 +18,8 @@ urlpatterns = [
     path("buy/list/", views.BuyList.as_view(), name="buy-list"),
     path("buy/detail/", views.BuyDetail.as_view(), name="buy-detail"),
 
-    path("outbound/list/", views.GoodsList.as_view(), name="outbound-list"),
-    path("outbound/detail/", views.GoodsDetail.as_view(), name="outbound-detail"),
+    path("outbound/list/", views.OutboundList.as_view(), name="outbound-list"),
+    path("outbound/detail/", views.OutboundDetail.as_view(), name="outbound-detail"),
 
     path("transportation/list/", views.TransportationList.as_view(), name="transportation-list"),
 

@@ -265,11 +265,11 @@ class OrderList(APIView):
         :return:
         """
         queryset = OrderInfo.objects.all()
-        paginator = self.pagination_class()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            s = OrderInfoSerializer(instance=page, many=True)
-            return paginator.get_paginated_response(s.data)
+        # paginator = self.pagination_class()
+        # page = paginator.paginate_queryset(queryset, request)
+        # if page is not None:
+        #     s = OrderInfoSerializer(instance=page, many=True)
+        #     return paginator.get_paginated_response(s.data)
 
         s = OrderInfoSerializer(instance=queryset, many=True)
         return Response(s.data, status=status.HTTP_200_OK)

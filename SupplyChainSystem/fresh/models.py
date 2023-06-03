@@ -120,10 +120,10 @@ class CountRecord(models.Model):
 
 
 class OrderInfo(models.Model):
-    order_id = models.CharField(primary_key=True, max_length=8, verbose_name="订单编号")
+    order_id = models.CharField(primary_key=True, max_length=20, verbose_name="订单编号")
     transfer = models.ForeignKey('TransferInfo', verbose_name="交易编码", on_delete=models.CASCADE)
     out = models.ForeignKey('OutboundRecord', verbose_name="出库编号", on_delete=models.CASCADE)
-    transport = models.ForeignKey('TransportRecord', verbose_name="运输编码", on_delete=models.CASCADE)
+    # transport = models.ForeignKey('TransportRecord', verbose_name="运输编码", on_delete=models.CASCADE)
     g = models.ForeignKey('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE)
     order_time = models.DateTimeField(auto_now=True, verbose_name="生效时间", null=True)
     order_quantity = models.SmallIntegerField(verbose_name="订单数量", blank=True, null=True)
@@ -136,22 +136,23 @@ class OrderInfo(models.Model):
 
     def save(self, *args, **kwargs):
         today = date.today()
-        if today != pre:
-            count = 0
+        if today != self.pre:
+            self.count = 0
         if not self.order_id:
-            count += 1
-            self.order_id = date.today() + str(count)  #将id设置为日期+序号
-        pre = today
+            self.count += 1
+            self.order_id = str(date.today()) + str(self.count)  #将id设置为日期+序号
+        self.pre = today
         super(OrderInfo, self).save(*args, **kwargs)
 
-        ob, _ = OutboundRecord.objects.get_or_create(out_id=self.out)
-        goods, _ = StockInfo.objects.get_or_create(g_id=self.g, wh_id=ob.wh)
+        ob, _ = OutboundRecord.objects.get_or_create(out_id=self.out_id)
+        goods, _ = StockInfo.objects.get_or_create(g_id=self.g_id, wh_id=ob.wh_id)
         goods.s_quantity -= self.order_quantity
         goods.save()
 
         trans = TransportRecord()
         trans.transport_to = self.client_addr
         trans.wh = ob.wh
+        trans.order_id = self.order_id
         trans.save()
 
     class Meta:
@@ -200,6 +201,7 @@ class TransportationInfo(models.Model):
 
 class TransportRecord(models.Model):
     transport_id = models.AutoField(primary_key=True, verbose_name="运输编码")
+    order_id = models.ForeignKey('OrderInfo', verbose_name='订单编号', on_delete=models.CASCADE, null=True)
     transportation = models.ForeignKey('TransportationInfo', verbose_name="载具编号", on_delete=models.CASCADE, null=True)
     wh = models.ForeignKey('WarehouseInfo', verbose_name="仓库编码", on_delete=models.CASCADE)
     transport_to = models.CharField(max_length=16, verbose_name="目的地", blank=True, null=True)

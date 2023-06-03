@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.db.models.signals import post_save
 from django.db.models import Q, F, ExpressionWrapper, Func
 from django.db.models.fields import DurationField
+from django.db.models.functions import ExtractMonth
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
@@ -20,7 +21,7 @@ from .permissions import IsOwnerReadOnly
 from .models import *
 from .serializers import *
 import json
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 # 导入员工信息和KPI
 from Login.models import *
 from Login.serializers import *
@@ -194,6 +195,7 @@ class WarehouseDetail(APIView):
 
     def get(self, request):
         func = request.GET.get('function')
+
         #按照id查询仓库
         if func == "id":
             wh_id = request.GET.get('wh_id')
@@ -263,11 +265,11 @@ class OrderList(APIView):
         :return:
         """
         queryset = OrderInfo.objects.all()
-        paginator = self.pagination_class()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            s = OrderInfoSerializer(instance=page, many=True)
-            return paginator.get_paginated_response(s.data)
+        # paginator = self.pagination_class()
+        # page = paginator.paginate_queryset(queryset, request)
+        # if page is not None:
+        #     s = OrderInfoSerializer(instance=page, many=True)
+        #     return paginator.get_paginated_response(s.data)
 
         s = OrderInfoSerializer(instance=queryset, many=True)
         return Response(s.data, status=status.HTTP_200_OK)
@@ -305,6 +307,7 @@ class OrderDetail(APIView):
         :return:
         """
         func = request.GET.get('function')
+
         if func == "id":
             order_id = request.GET.get('order_id')
             obj = self.get_object(pk=order_id)
@@ -323,7 +326,18 @@ class OrderDetail(APIView):
             )
             if not obj:
                 return Response(data={"msg": "最近7天没有订单信息"}, status=status.HTTP_404_NOT_FOUND)
-            s = OrderInfoSerializer(instance=obj)
+            s = OrderInfoSerializer(instance=obj, many=True)
+            return Response(s.data, status=status.HTTP_200_OK)
+
+        #查询某一月的订单
+        if func == "month":
+            month = request.GET.get("month")
+            obj = OrderInfo.objects.filter(
+                order_time__month=month
+            )
+            if not obj:
+                return Response(data={"msg": "没有该月的订单信息"}, status=status.HTTP_404_NOT_FOUND)
+            s = OrderInfoSerializer(instance=obj, many=True)
             return Response(s.data, status=status.HTTP_200_OK)
 
     def put(self, request):
@@ -379,7 +393,6 @@ class BuyList(APIView):
     def post(self, request):
         s = BuyRecordSerializer(data=request.data)
         if s.is_valid():
-            print(s)
             s.save()
             return Response(s.data, status=status.HTTP_201_CREATED)
         return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -527,6 +540,7 @@ class TransportDetail(APIView):
     def get(self, request):
         func = request.GET.get('function')
         queryset = None
+
         if func == "loc":
             loc = request.GET.get('loc')
             queryset = TransportRecord.objects.filter(transport_to__contains=loc)
@@ -565,6 +579,20 @@ class StockList(APIView):
 
     def post(self, request):
         s = StockInfoSerializer(data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(s.data, status=status.HTTP_201_CREATED)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CountList(APIView):
+    def get(self, request):
+        queryset = CountRecord.objects.all()
+        s = CountRecordSerializer(instance=queryset, many=True)
+        return Response(s.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        s = CountRecordSerializer(data=request.data)
         if s.is_valid():
             s.save()
             return Response(s.data, status=status.HTTP_201_CREATED)

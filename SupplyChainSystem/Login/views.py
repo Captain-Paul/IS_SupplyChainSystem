@@ -14,8 +14,8 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated
-from .permissions import IsHRDepartment
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from .permissions import *
 from .models import *
 from .serializers import *
 import json
@@ -26,6 +26,7 @@ class LoginView(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @staticmethod
     def get(self, request):
         try:
             user_username = request.GET.get('username')
@@ -58,6 +59,7 @@ class LoginView(APIView):
         response['Authorization'] = f'Token {token.key}'
         return response
 
+
 # class RegisterView(APIView):
 #     permission_classes = (IsAuthenticated,)
 #
@@ -86,8 +88,8 @@ class StaffPagination(PageNumberPagination):
 
 
 class StaffList(APIView):
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated, IsHRDepartment]
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated, StaffListPermission,)
     pagination_class = StaffPagination
 
     def get(self, request):
@@ -102,24 +104,69 @@ class StaffList(APIView):
         return Response(s.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        pass
+        s = StaffInfoSerializer(data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(s.data, status=status.HTTP_201_CREATED)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StaffDetail(APIView):
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated, IsHRDepartment]
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated, StaffDetailPermission)
     pagination_class = StaffPagination
 
-    def get(self, request):
-        pass
+    @staticmethod
+    def get_object(pk):
+        """
+        Get object according to given primary key.
+        :param pk: primary key
+        :return:
+        """
+        try:
+            return StaffInfo.objects.get(pk=pk)
+        except:
+            return
 
-    def post(self, request):
-        pass
+    def get(self, request):
+        """
+        查询id
+        :param request:
+        :return:
+        """
+        func = request.GET.get('function')
+
+        if not func:
+            return Response(data={"msg": "需要function参数"})
+        elif func == 'id':
+            obj = self.get_object(request.GET.get('staff_id'))
+            if not obj:
+                return Response(data={"msg": "没有员工信息"}, status=status.HTTP_404_NOT_FOUND)
+            s = StaffInfoSerializer(instance=obj)
+            return Response(s.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        body = request.body
+        try:
+            data = json.loads(body.decode('utf-8'))
+        except ValueError:
+            return Response(data={"msg": "非合法json格式"}, status=status.HTTP_404_NOT_FOUND)
+
+        user_id = data.get('user_id')
+        obj = self.get_object(user_id)
+        if not obj:
+            return Response(data={"msg": "没有此员工信息"}, status=status.HTTP_404_NOT_FOUND)
+        s = StaffInfoSerializer(instance=obj, data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(data=s.data, status=status.HTTP_200_OK)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class KpiList(APIView):
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = (BasicAuthentication, )
+    permission_classes = (IsAuthenticated, KpiListPermission)
     pagination_class = StaffPagination
 
     def get(self, request):
@@ -138,9 +185,21 @@ class KpiList(APIView):
 
 
 class KpiDetail(APIView):
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated, IsHRDepartment]
+    authentication_classes = (BasicAuthentication, )
+    permission_classes = (IsAuthenticated, KpiDetailPermission)
     pagination_class = StaffPagination
+
+    @staticmethod
+    def get_object(pk):
+        """
+        Get object according to given primary key.
+        :param pk: primary key
+        :return:
+        """
+        try:
+            return KpiInfo.objects.get(pk=pk)
+        except:
+            return Response({})
 
     def get(self, request):
         pass

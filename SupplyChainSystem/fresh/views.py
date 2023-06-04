@@ -26,6 +26,7 @@ from datetime import date, timedelta, datetime
 from Login.models import *
 from Login.serializers import *
 
+
 # # 内存缓存
 # from django.core.cache import cache
 # import pyodbc
@@ -37,6 +38,7 @@ class FreshPagination(PageNumberPagination):
     page_size = 5
     page_size_query_param = 'page_size'
     max_page_size = 100
+
 
 # # 用户登录状态缓存
 # def user_login(request):
@@ -76,7 +78,6 @@ class FreshPagination(PageNumberPagination):
 #         cursor.close()
 #         conn.close()
 #         return HttpResponse('Unauthorized', status=401)
-
 
 
 class GoodsList(APIView):
@@ -196,7 +197,7 @@ class WarehouseDetail(APIView):
     def get(self, request):
         func = request.GET.get('function')
 
-        #按照id查询仓库
+        # 按照id查询仓库
         if func == "id":
             wh_id = request.GET.get('wh_id')
             obj = self.get_object(pk=wh_id)
@@ -205,7 +206,7 @@ class WarehouseDetail(APIView):
             s = WarehouseInfoSerializer(instance=obj)
             return Response(s.data, status=status.HTTP_200_OK)
 
-        #查询距离接收到的坐标最近的仓库
+        # 查询距离接收到的坐标最近的仓库
         if func == 'nearest':
             loc = request.query_params.get('loc', None)  # 获取请求中的经纬度参数
             if loc:
@@ -215,7 +216,8 @@ class WarehouseDetail(APIView):
                 except ValueError:
                     return Response({'error': 'Invalid location parameter'}, status=status.HTTP_400_BAD_REQUEST)
                 # 查询最近的仓库，使用Django提供的geo查询API
-                warehouse = WarehouseInfo.objects.annotate(distance=Distance('location', Point(lng, lat))).order_by('distance').first()
+                warehouse = WarehouseInfo.objects.annotate(distance=Distance('location', Point(lng, lat))).order_by(
+                    'distance').first()
                 if warehouse:
                     serializer = WarehouseSerializer(warehouse)
                     return Response(serializer.data)
@@ -316,7 +318,7 @@ class OrderDetail(APIView):
             s = OrderInfoSerializer(instance=obj)
             return Response(s.data, status=status.HTTP_200_OK)
 
-        #查询最近7天的订单
+        # 查询最近7天的订单
         if func == "latest":
             today = date.today()
             one_week_ago = today - timedelta(days=7)
@@ -329,7 +331,7 @@ class OrderDetail(APIView):
             s = OrderInfoSerializer(instance=obj, many=True)
             return Response(s.data, status=status.HTTP_200_OK)
 
-        #查询某一月的订单
+        # 查询某一月的订单
         if func == "month":
             month = request.GET.get("month")
             obj = OrderInfo.objects.filter(
@@ -487,14 +489,14 @@ class OutboundDetail(APIView):
         """
         func = request.GET.get('function')
         obj = None
-        #按照id查询出库记录
+        # 按照id查询出库记录
         if func == "id":
             outbound_id = request.GET.get('outbound_id')
             obj = self.get_object(pk=outbound_id)
             if not obj:
                 return Response(data={"msg": "没有此出库记录"}, status=status.HTTP_404_NOT_FOUND)
 
-        #查询最近7天的出库记录
+        # 查询最近7天的出库记录
         if func == "latest":
             today = date.today()
             one_week_ago = today - timedelta(days=7)

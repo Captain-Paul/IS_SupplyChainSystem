@@ -11,3 +11,7 @@ class Command(BaseCommand):
         for group_dp in groups:
             # create or get department groups
             group, created = Group.objects.get_or_create(name=group_dp)
+            if created:
+                print(f"group {group_dp} has been added.")
+            else:
+                print(f"group {group_dp} already existed.")

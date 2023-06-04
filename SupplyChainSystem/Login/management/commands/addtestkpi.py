@@ -12,7 +12,7 @@ class Command(BaseCommand):
         for i in range(1, 6):
             # 获取测试的用户
             username = f"staff{i:04}"
-            k_user = User.objects.get(username=username)
+            user = User.objects.get(username=username)
             # 生成随机年月时间
             year = random.randint(2022, 2023)
             month = random.randint(1, 12)
@@ -20,7 +20,8 @@ class Command(BaseCommand):
             # 生成随机绩效
             kpi = round(random.uniform(0, 100), 3)
             # 计算实际工资
-            realsalary = StaffInfo.objects.get(s_user=k_user).s_salary + (kpi - 50) * 10
+            real_salary = StaffInfo.objects.get(user=user).s_salary + (kpi - 50) * 10
             # 创建 KpiInfo 对象并添加到列表中
-            objects_to_create.append(KpiInfo(k_id=str(i), k_user=k_user, k_ym=k_ym, kpi=kpi, realsalary=realsalary))
-        KpiInfo.objects.bulk_create(objects_to_create)
+            object_to_create = KpiInfo(k_id=str(i), user=user, k_ym=k_ym, kpi=kpi, real_salary=real_salary)
+            object_to_create.save()
+            print(f"a new kpi record has been added: k_id={str(i)}, user={user}, k_ym={k_ym} kpi={kpi}, real_salary={real_salary}")

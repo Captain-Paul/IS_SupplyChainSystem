@@ -32,8 +32,8 @@ class Command(BaseCommand):
                 # user = User.objects.create_user(username=group_dp+' staff', password='123456')
                 user.groups.add(group)
                 # 将用户信息同步到 StaffInfo 表中
-                staff_info = StaffInfo(s_user=user, s_id=str(count), s_name='_'+Faker('zh_CN').name(),
-                                       s_salary=10000, s_onboarddate='2023-06-01 08:00:00',
+                staff_info = StaffInfo(user=user, s_id=str(count), s_name='_'+Faker('zh_CN').name(),
+                                       s_salary=10000, s_onboard_date='2023-06-01 08:00:00',
                                        s_gender='男', s_birth='1990-01-01 00:00:00', s_job='员工',
                                        s_email='test@test.com', s_tel='12345678901')
                 staff_info.save()

@@ -91,8 +91,8 @@
 import axios from 'axios';
 
 // const axios = require('axios');
-const username = 'Inv01';
-const password = 'inv123456';
+const username = 'no_thanks';
+const password = '123456';
 const basicAuth = 'Basic ' + btoa(username + ':' + password);
 
   export default {

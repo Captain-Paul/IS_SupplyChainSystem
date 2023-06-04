@@ -23,10 +23,17 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Editor directories and files
-.idea
-.vscode
+**/.idea
+**/.vscode
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# 忽略 Python 的编译缓存文件
+<<<<<<< HEAD
+**/__pycache__/
+=======
+SupplyChainSystem/__pycache__/
+>>>>>>> main

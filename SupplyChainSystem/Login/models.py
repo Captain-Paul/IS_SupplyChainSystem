@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 
 class StaffInfo(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="用户编号")
     s_id = models.CharField(primary_key=True, max_length=8, verbose_name="员工编号")
     s_name = models.CharField(max_length=16, verbose_name="员工姓名", blank=True, null=True)
     s_salary = models.BigIntegerField(verbose_name="基本工资", blank=True, null=True)
@@ -30,8 +30,10 @@ class StaffInfo(models.Model):
 
 
 class KpiInfo(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    k_id = models.AutoField(primary_key=True, verbose_name="KPI编号")
+    # user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="用户编号")
+    k_id = models.CharField(primary_key=True, max_length=8, verbose_name="KPI编号")
+    s_id = models.ForeignKey('StaffInfo', verbose_name="员工编号", on_delete=models.CASCADE)
+    # k_id = models.AutoField(primary_key=True, verbose_name="KPI编号")
     k_ym = models.DateTimeField(verbose_name="年月", blank=False, null=False)
     kpi = models.FloatField(verbose_name="绩效", blank=True, null=True)
     real_salary = models.BigIntegerField(verbose_name="实发工资", blank=True, null=True)

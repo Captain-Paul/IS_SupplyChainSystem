@@ -24,9 +24,9 @@ from datetime import date, timedelta
 
 class LoginView(APIView):
     authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated]
 
-    @staticmethod
+    # permission_classes = [IsAuthenticated]
+
     def get(self, request):
         try:
             user_username = request.GET.get('username')
@@ -102,13 +102,13 @@ class StaffList(APIView):
 
         s = StaffInfoSerializer(instance=queryset, many=True)
         return Response(s.data, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        s = StaffInfoSerializer(data=request.data)
-        if s.is_valid():
-            s.save()
-            return Response(s.data, status=status.HTTP_201_CREATED)
-        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+    #
+    # def post(self, request):
+    #     s = StaffInfoSerializer(data=request.data)
+    #     if s.is_valid():
+    #         s.save()
+    #         return Response(s.data, status=status.HTTP_201_CREATED)
+    #     return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StaffDetail(APIView):
@@ -130,7 +130,7 @@ class StaffDetail(APIView):
 
     def get(self, request):
         """
-        查询id
+        带参数查询
         :param request:
         :return:
         """
@@ -139,33 +139,56 @@ class StaffDetail(APIView):
         if not func:
             return Response(data={"msg": "需要function参数"})
         elif func == 'id':
-            obj = self.get_object(request.GET.get('staff_id'))
+            obj = self.get_object(request.GET.get('s_id'))
             if not obj:
                 return Response(data={"msg": "没有员工信息"}, status=status.HTTP_404_NOT_FOUND)
             s = StaffInfoSerializer(instance=obj)
             return Response(s.data, status=status.HTTP_200_OK)
 
-    def put(self, request):
-        body = request.body
-        try:
-            data = json.loads(body.decode('utf-8'))
-        except ValueError:
-            return Response(data={"msg": "非合法json格式"}, status=status.HTTP_404_NOT_FOUND)
-
-        user_id = data.get('user_id')
-        obj = self.get_object(user_id)
-        if not obj:
-            return Response(data={"msg": "没有此员工信息"}, status=status.HTTP_404_NOT_FOUND)
-        s = StaffInfoSerializer(instance=obj, data=request.data)
-        if s.is_valid():
-            s.save()
-            return Response(data=s.data, status=status.HTTP_200_OK)
-        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    # def put(self, request):
+    #     """
+    #     更新一条数据
+    #     :param request:
+    #     :return:
+    #     """
+    #     body = request.body
+    #     try:
+    #         data = json.loads(body.decode('utf-8'))
+    #     except ValueError:
+    #         return Response(data={"msg": "非合法json格式"}, status=status.HTTP_404_NOT_FOUND)
+    #
+    #     s_id = data.get('s_id')
+    #     obj = self.get_object(s_id)
+    #     if not obj:
+    #         return Response(data={"msg": "没有此员工信息"}, status=status.HTTP_404_NOT_FOUND)
+    #     s = StaffInfoSerializer(instance=obj, data=request.data)
+    #     if s.is_valid():
+    #         s.save()
+    #         return Response(data=s.data, status=status.HTTP_200_OK)
+    #     return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+    #
+    # def delete(self, request):
+    #     """
+    #     删除一条数据
+    #     :param request:
+    #     :return:
+    #     """
+    #     body = request.body
+    #     try:
+    #         data = json.loads(body.decode('utf-8'))
+    #     except ValueError:
+    #         return Response(data={"msg": "非合法json格式"}, status=status.HTTP_404_NOT_FOUND)
+    #
+    #     s_id = data.get('s_id')
+    #     obj = self.get_object(pk=s_id)
+    #     if not obj:
+    #         return Response(data={"msg": "没有此员工信息"}, status=status.HTTP_404_NOT_FOUND)
+    #     obj.delete()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class KpiList(APIView):
-    authentication_classes = (BasicAuthentication, )
+    authentication_classes = (BasicAuthentication,)
     permission_classes = (IsAuthenticated, KpiListPermission)
     pagination_class = StaffPagination
 
@@ -181,11 +204,20 @@ class KpiList(APIView):
         return Response(s.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        pass
+        """
+        添加一条kpi信息
+        :param request:
+        :return:
+        """
+        s = KpiInfoSerializer(data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(s.data, status=status.HTTP_201_CREATED)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class KpiDetail(APIView):
-    authentication_classes = (BasicAuthentication, )
+    authentication_classes = (BasicAuthentication,)
     permission_classes = (IsAuthenticated, KpiDetailPermission)
     pagination_class = StaffPagination
 
@@ -199,10 +231,62 @@ class KpiDetail(APIView):
         try:
             return KpiInfo.objects.get(pk=pk)
         except:
-            return Response({})
+            return
 
     def get(self, request):
-        pass
+        """
+        带参数查询
+        :param request:
+        :return:
+        """
+        func = request.GET.get('function')
 
-    def post(self, request):
-        pass
+        if not func:
+            return Response(data={"msg": "需要function参数"})
+        elif func == 'id':
+            obj = self.get_object(request.GET.get('k_id'))
+            if not obj:
+                return Response(data={"msg": "没有KPI信息"}, status=status.HTTP_404_NOT_FOUND)
+            s = KpiInfoSerializer(instance=obj)
+            return Response(s.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        """
+        修改一条数据
+        :param request:
+        :return:
+        """
+        body = request.body
+        try:
+            data = json.loads(body.decode('utf-8'))
+        except ValueError:
+            return Response(data={"msg": "非合法json格式"}, status=status.HTTP_404_NOT_FOUND)
+
+        k_id = data.get('k_id')
+        obj = self.get_object(pk=k_id)
+        if not obj:
+            return Response(data={"msg": "没有此KPI信息"}, status=status.HTTP_404_NOT_FOUND)
+        s = KpiInfoSerializer(instance=obj, data=request.data)
+        if s.is_valid():
+            s.save()
+            return Response(data=s.data, status=status.HTTP_200_OK)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        """
+        删除一条数据
+        :param request:
+        :return:
+        """
+        body = request.body
+        try:
+            data = json.loads(body.decode('utf-8'))
+        except ValueError:
+            return Response(data={"msg": "非合法json格式"}, status=status.HTTP_404_NOT_FOUND)
+
+        k_id = data.get('k_id')
+        obj = self.get_object(pk=k_id)
+        if not obj:
+            return Response(data={"msg": "没有此KPI信息"}, status=status.HTTP_404_NOT_FOUND)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

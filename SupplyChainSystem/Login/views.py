@@ -33,20 +33,20 @@ class LoginView(APIView):
             password = request.GET.get('pw')
             role_name = request.GET.get('role')
             if not user_username or not password or not role_name:
-                return Response('用户名、密码和部门不能为空.')
+                return Response({'error': '用户名、密码和部门不能为空.'}, status=status.HTTP_204_NO_CONTENT)
         except:
-            return Response('请求参数不正确.')
+            return Response({'error': '请求参数不正确.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 检查部门和用户是否存在并验证密码
         try:
             group = Group.objects.get(name=role_name)
             user = User.objects.get(username=user_username, groups=group)
             if not user.check_password(password):
-                return Response('密码错误.')
+                return Response({'error': '密码错误.'}, status=status.HTTP_401_UNAUTHORIZED)
         except Group.DoesNotExist:
-            return Response('指定的部门不存在.')
+            return Response({'error': '指定的部门不存在.'}, status=status.HTTP_404_NOT_FOUND)
         except User.DoesNotExist:
-            return Response('指定的用户不存在.')
+            return Response({'error': '指定的用户不存在.'}, status=status.HTTP_404_NOT_FOUND)
 
         # 创建或获取用户的 Token
         token, created = Token.objects.get_or_create(user=user)
@@ -55,7 +55,7 @@ class LoginView(APIView):
         # ...
 
         # 将 Token 添加到响应头中返回
-        response = Response('登录成功.')
+        response = Response({'success': '登录成功.'})
         response['Authorization'] = f'Token {token.key}'
         return response
 

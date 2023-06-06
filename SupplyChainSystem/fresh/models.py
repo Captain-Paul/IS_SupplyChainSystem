@@ -82,7 +82,7 @@ class WarehouseInfo(models.Model):
 class BuyRecord(models.Model):
     g = models.ForeignKey('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE)
     wh = models.ForeignKey('WarehouseInfo', verbose_name="仓库编码", on_delete=models.CASCADE)
-    buy_id = models.CharField(primary_key=True, max_length=8, verbose_name="批次编码", blank=True)
+    buy_id = models.CharField(max_length=8, verbose_name="批次编码", blank=True)
     buy_quantity = models.SmallIntegerField(verbose_name="采购数量", blank=True, null=True)
     buy_intime = models.DateField(verbose_name="到达日期", blank=True, null=True)
     buy_pdate = models.DateField(verbose_name="生产日期", blank=True, null=True)
@@ -93,7 +93,7 @@ class BuyRecord(models.Model):
     def save(self, *args, **kwargs):
         super(BuyRecord, self).save(*args, **kwargs)
 
-        goods, created = StockInfo.objects.get_or_create(g_id=self.g_id, wh_id=self.wh_id, defaults={'s_quantity':0})
+        goods, _ = StockInfo.objects.get_or_create(g_id=self.g, wh_id=self.wh)
         goods.s_quantity += self.buy_quantity
         goods.save()
 
@@ -118,8 +118,7 @@ class CountRecord(models.Model):
         verbose_name_plural = verbose_name
         db_table = 'count_record'
 
-count = 0
-pre = date.today()
+
 class OrderInfo(models.Model):
     order_id = models.CharField(primary_key=True, max_length=20, verbose_name="订单编号")
     transfer = models.ForeignKey('TransferInfo', verbose_name="交易编码", on_delete=models.CASCADE)
@@ -133,16 +132,16 @@ class OrderInfo(models.Model):
     client_addr = models.CharField(max_length=16, verbose_name="客户地址", blank=True, null=True)
     client_tel = models.CharField(max_length=11, verbose_name="客户电话", blank=True, null=True)
     count = 0
+    pre = 0
 
     def save(self, *args, **kwargs):
-        global count, pre
-        count = len(OrderInfo.objects.filter(order_time__day=int(str(date.today())[-1])))
         today = date.today()
-        if today != pre:
-            count = 0
-        count += 1
-        self.order_id = str(date.today()) + str(count)  #将id设置为日期+序号
-        pre = today
+        if today != self.pre:
+            self.count = 0
+        if not self.order_id:
+            self.count += 1
+            self.order_id = str(date.today()) + str(self.count)  #将id设置为日期+序号
+        self.pre = today
         super(OrderInfo, self).save(*args, **kwargs)
 
         ob, _ = OutboundRecord.objects.get_or_create(out_id=self.out_id)
@@ -202,7 +201,7 @@ class TransportationInfo(models.Model):
 
 class TransportRecord(models.Model):
     transport_id = models.AutoField(primary_key=True, verbose_name="运输编码")
-    order = models.ForeignKey('OrderInfo', verbose_name='订单编号', on_delete=models.CASCADE, null=True)
+    order_id = models.ForeignKey('OrderInfo', verbose_name='订单编号', on_delete=models.CASCADE, null=True)
     transportation = models.ForeignKey('TransportationInfo', verbose_name="载具编号", on_delete=models.CASCADE, null=True)
     wh = models.ForeignKey('WarehouseInfo', verbose_name="仓库编码", on_delete=models.CASCADE)
     transport_to = models.CharField(max_length=16, verbose_name="目的地", blank=True, null=True)

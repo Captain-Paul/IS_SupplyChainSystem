@@ -519,6 +519,23 @@ class TransportDetail(APIView):
         s = TransportRecordSerializer(instance=queryset, many=True)
         return Response(s.data, status=status.HTTP_200_OK)
 
+    def put(self, request):
+        body = request.body
+        try:
+            data = json.loads(body.decode('utf-8'))
+        except ValueError:
+            return Response(data={"msg": "非合法json格式"}, status=status.HTTP_404_NOT_FOUND)
+
+        order_id = data.get('order_id')
+        obj = TransportRecord.objects.get(order_id=order_id)
+        if not obj:
+            return Response(data={"msg": "没有此订单信息"}, status=status.HTTP_404_NOT_FOUND)
+        s = TransportRecordSerializer(instance=obj, data=data, partial=True)
+        if s.is_valid():
+            s.save()
+            return Response(data=s.data, status=status.HTTP_200_OK)
+        return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class TransferList(APIView):
     def get(self, request):

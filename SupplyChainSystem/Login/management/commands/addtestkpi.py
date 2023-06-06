@@ -10,9 +10,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         objects_to_create = []
         for i in range(1, 6):
-            # 获取测试的用户
+            # 获取测试用户
             username = f"staff{i:04}"
             user = User.objects.get(username=username)
+            # 获取测试员工
+            staff = StaffInfo.objects.get(user=user)
             # 生成随机年月时间
             year = random.randint(2022, 2023)
             month = random.randint(1, 12)
@@ -20,8 +22,9 @@ class Command(BaseCommand):
             # 生成随机绩效
             kpi = round(random.uniform(0, 100), 3)
             # 计算实际工资
-            real_salary = StaffInfo.objects.get(user=user).s_salary + (kpi - 50) * 10
+            real_salary = staff.s_salary + (kpi - 50) * 10
             # 创建 KpiInfo 对象并添加到列表中
-            object_to_create = KpiInfo(k_id=str(i), user=user, k_ym=k_ym, kpi=kpi, real_salary=real_salary)
+            object_to_create = KpiInfo(k_id=str(i), s_id=staff, k_ym=k_ym, kpi=kpi, real_salary=real_salary)
             object_to_create.save()
-            print(f"a new kpi record has been added: k_id={str(i)}, user={user}, k_ym={k_ym} kpi={kpi}, real_salary={real_salary}")
+            print(f"a new kpi record has been added: "
+                  f"k_id={str(i)}, s_id={staff.s_id}, k_ym={k_ym} kpi={kpi}, real_salary={real_salary}")

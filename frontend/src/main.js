@@ -1,5 +1,3 @@
-// 在main.js 文件中，导入 element-ui、vue-resource 库
-
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'

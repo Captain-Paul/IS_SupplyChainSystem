@@ -19,7 +19,7 @@
             <el-menu-item index="goods_info">
               <i class="el-icon-box"></i> 货物详情
             </el-menu-item>
-            <el-menu-item index="count_record">
+            <el-menu-item index="stock_info">
               <i class="el-icon-takeaway-box"></i> 现有库存
             </el-menu-item>
             <el-menu-item index="outbound_record">

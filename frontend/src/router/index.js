@@ -162,9 +162,9 @@ const router = new Router({
         name:'GoodsInfo',
         component:GoodsInfo
       },{
-        path:'/count_record',
-        name:'CountRecord',
-        component:CountRecord
+        path:'/stock_info',
+        name:'StockInfo',
+        component:StockInfo
       },{
         path:'/add_buy',
         name:'AddBuy',

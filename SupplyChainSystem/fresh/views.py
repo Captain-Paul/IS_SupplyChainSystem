@@ -537,8 +537,8 @@ class TransferList(APIView):
 
 class StockList(APIView):
     def get(self, request):
-        queryset = TransferInfo.objects.all()
-        s = TransferInfoSerializer(instance=queryset, many=True)
+        queryset = StockInfo.objects.all()
+        s = StockInfoSerializer(instance=queryset, many=True)
         return Response(s.data, status=status.HTTP_200_OK)
 
     def post(self, request):

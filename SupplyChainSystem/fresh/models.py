@@ -7,7 +7,7 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 from django.conf import settings
-from datetime import date
+from datetime import date, datetime
 
 
 """要调用save方法的：BuyRecord, OrderInfo"""
@@ -122,11 +122,11 @@ count = 0
 pre = date.today()
 class OrderInfo(models.Model):
     order_id = models.CharField(primary_key=True, max_length=20, verbose_name="订单编号")
-    transfer = models.ForeignKey('TransferInfo', verbose_name="交易编码", on_delete=models.CASCADE)
-    out = models.ForeignKey('OutboundRecord', verbose_name="出库编号", on_delete=models.CASCADE)
+    transfer = models.ForeignKey('TransferInfo', verbose_name="交易编码", on_delete=models.CASCADE, null=True)
+    out = models.ForeignKey('OutboundRecord', verbose_name="出库编号", on_delete=models.CASCADE, null=True)
     # transport = models.ForeignKey('TransportRecord', verbose_name="运输编码", on_delete=models.CASCADE)
-    g = models.ForeignKey('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE)
-    order_time = models.DateTimeField(auto_now=True, verbose_name="生效时间", null=True)
+    g = models.ForeignKey('GoodsInfo', verbose_name="货物编码", on_delete=models.CASCADE, null=True)
+    order_time = models.DateTimeField(verbose_name="生效时间", null=True)
     order_quantity = models.SmallIntegerField(verbose_name="订单数量", blank=True, null=True)
     order_realprice = models.DecimalField(verbose_name="实际售价", max_digits=6, decimal_places=2, blank=True, null=True)
     client_name = models.CharField(max_length=16, verbose_name="客户姓名", blank=True, null=True)
@@ -135,13 +135,17 @@ class OrderInfo(models.Model):
     count = 0
 
     def save(self, *args, **kwargs):
+        if not self.order_time:
+            self.order_time = datetime.now()
+
         global count, pre
         count = len(OrderInfo.objects.filter(order_time__day=int(str(date.today())[-1])))
         today = date.today()
         if today != pre:
             count = 0
         count += 1
-        self.order_id = str(date.today()) + str(count)  #将id设置为日期+序号
+        if not self.order_id or len(self.order_id) < 10:
+            self.order_id = str(date.today()) + str(count)  #将id设置为日期+序号
         pre = today
         super(OrderInfo, self).save(*args, **kwargs)
 
@@ -153,7 +157,7 @@ class OrderInfo(models.Model):
         trans = TransportRecord()
         trans.transport_to = self.client_addr
         trans.wh = ob.wh
-        trans.order_id = self.order_id
+        trans.order = self
         trans.save()
 
     class Meta:

@@ -359,8 +359,10 @@ class OrderDetail(APIView):
         obj = self.get_object(pk=order_id)
         if not obj:
             return Response(data={"msg": "没有此订单信息"}, status=status.HTTP_404_NOT_FOUND)
-        s = OrderInfoSerializer(instance=obj, data=request.data)
+        s = OrderInfoSerializer(instance=obj, data=data)
+        print(s.initial_data)
         if s.is_valid():
+            # print(s.validated_data)
             s.save()
             return Response(data=s.data, status=status.HTTP_200_OK)
         return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)

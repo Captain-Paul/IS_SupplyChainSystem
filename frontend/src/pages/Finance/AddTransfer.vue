@@ -32,10 +32,8 @@
 
                 <el-form-item label="转账类型" prop="transfer_class">
                 <el-select v-model="ruleForm.transfer_class" placeholder="请选择转账类型">
-                    <el-option label="工行" value="工行"></el-option>
-                    <el-option label="建行" value="建行"></el-option>
-                    <el-option label="中行" value="中行"></el-option>
-                    <el-option label="农行" value="农行"></el-option>
+                    <el-option label="转入" value="in"></el-option>
+                    <el-option label="转出" value="out"></el-option>
                 </el-select>
                 </el-form-item>
 

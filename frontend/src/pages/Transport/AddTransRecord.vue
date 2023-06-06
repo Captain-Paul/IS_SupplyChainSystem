@@ -3,10 +3,6 @@
     <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px">
         <el-row>
             <el-col :span="18" :offset="4">
-              
-                <!-- <el-form-item label="运输编码" prop="transport_id" required>
-                    <el-input v-model="ruleForm.transport_id"></el-input>
-                </el-form-item> -->
                 <el-form-item label="订单编号" prop="order_id" required>
                   <el-select v-model="ruleForm.order_id" placeholder="请选择">
                     <el-option
@@ -27,20 +23,6 @@
                       :value="item"
                     ></el-option>
                   </el-select>
-                </el-form-item>
-
-                <el-form-item label="仓库编码" prop="wh">
-                  <el-select v-model="ruleForm.wh" placeholder="请选择">
-                    <el-option
-                      v-for="item in whOptions"
-                      :key="item"
-                      :label="item"
-                      :value="item"
-                    ></el-option>
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="目的地" prop="transport_to">
-                    <el-input v-model="ruleForm.transport_to"></el-input>
                 </el-form-item>
                 <el-form-item  label="预计送达时间" prop="transport_predicatedtime">
                 <el-date-picker type="date" placeholder="预计送达时间" v-model="ruleForm.transport_predicatedtime"></el-date-picker>
@@ -68,17 +50,13 @@ import moment from 'moment';
       data() {
         return {
           ruleForm: {
-            // transport_id: '',
             order_id: '',
             transportation: '',
-            wh: '',
-            transport_to: '',
             transport_predicatedtime: '',
             transport_realtime: '',
           },
           nowadays:'',
           rules: {
-            // transport_id: [{ required: true, message: '请输入运输编码', trigger: 'blur' },],
             order_id: [{ required: true, message: '请输入交易编码', trigger: 'blur' },],
           },orderOptions:[],whOptions:[],trOptions:[]
         };
@@ -86,12 +64,6 @@ import moment from 'moment';
       this.username = localStorage.getItem('username');
       this.password = localStorage.getItem('password');
       const ba = 'Basic ' + btoa(this.username + ':' + this.password);
-        axios
-        .get('http://127.0.0.1:8000/fresh/warehouse/list', {headers:{Authorization:ba}})
-        .then((response) => {
-            if (response.status === 200) {this.whOptions = response.data.map((item) => item.wh_id);
-            } else {alert('获取后端数据失败');}
-        }).catch((error) => {console.log(error);return false;});
         axios
         .get('http://127.0.0.1:8000/fresh/transportation/list', {headers:{Authorization:ba}})
         .then((response) => {
@@ -117,7 +89,7 @@ import moment from 'moment';
               const basicAuth = 'Basic ' + btoa(this.username + ':' + this.password);
               console.log(data);
               axios
-                .post('http://127.0.0.1:8000/fresh/transport/list/', data, { headers: { Authorization: basicAuth } })
+                .put('http://127.0.0.1:8000/fresh/transport/detail/', data, { headers: { Authorization: basicAuth } })
                 .then((response) => {
                   this.$message.success('数据提交成功');
                   console.log('数据提交成功', response.data);
@@ -126,7 +98,7 @@ import moment from 'moment';
                   this.$message.error('数据提交失败', error);
                 });
             } else {
-              this.$message.error('添加失败，请重新检查')
+              this.$message.error('数据更改失败，请重新检查')
               console.log('error submit!!');
               return false;
             }

@@ -7,6 +7,7 @@
         <el-button type="success" @click="showtransdetails">搜索运输记录</el-button>
 
         <el-table v-show="showItem" :data="transrecord" style="width: 100%">
+          <el-table-column label="订单编号" prop="order"></el-table-column>
           <el-table-column label="运输编号" prop="transport_id"></el-table-column>
           <el-table-column label="载具编号" prop="transportation"></el-table-column>
           <el-table-column label="目的地" prop="transport_to"></el-table-column>

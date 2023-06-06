@@ -111,18 +111,21 @@ class OrderInfo(models.Model):
         count += 1
         if not self.order_id or len(self.order_id) < 10:
             ob, _ = OutboundRecord.objects.get_or_create(out_id=self.out_id)
-            goods, _ = StockInfo.objects.get_or_create(g_id=self.g_id, wh_id=ob.wh_id)
-            goods.s_quantity -= self.order_quantity
+            goods, _ = StockInfo.objects.get_or_create(g_id=self.g_id, wh_id=ob.wh_id, defaults={"s_quantity":0})
+            goods.s_quantity = max(goods.s_quantity - self.order_quantity, 0)
             goods.save()
             self.order_id = str(date.today()) + str(count)  #将id设置为日期+序号
+            super(OrderInfo, self).save(*args, **kwargs)
             trans = TransportRecord()
             trans.transport_to = self.client_addr
             trans.wh = ob.wh
             trans.order = self
             trans.save()
+            pre = today
+            return
 
-        pre = today
         super(OrderInfo, self).save(*args, **kwargs)
+        pre = today
 
     class Meta:
         verbose_name = '订单信息'

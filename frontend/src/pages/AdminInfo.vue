@@ -2,13 +2,14 @@
   <div>
     <el-card>
       <el-descriptions title="开发者信息">
-        <el-descriptions-item label="前端页面">夏宇烨</el-descriptions-item>
-        <el-descriptions-item label="后端">赵晟浩</el-descriptions-item>
-        <el-descriptions-item label="居住地">苏州市</el-descriptions-item>
+        <el-descriptions-item label="前端页面">夏宇烨 高梓越</el-descriptions-item>
+        <el-descriptions-item label="地点">北京市</el-descriptions-item>
         <el-descriptions-item label="备注">
           <el-tag size="small">学校</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="联系地址">江苏省苏州市吴中区吴中大道 1188 号</el-descriptions-item>
+        <el-descriptions-item label="后端数据">赵晟浩 谢奕飞</el-descriptions-item>
+        
+        <el-descriptions-item label="联系地址">北京市海淀区知春路29号大运村学生公寓</el-descriptions-item>
       </el-descriptions>
     </el-card>
     <el-button icon="el-icon-back" circle class="card-button" @click="goBack"></el-button>

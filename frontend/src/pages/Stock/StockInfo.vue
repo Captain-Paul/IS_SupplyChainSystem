@@ -1,7 +1,7 @@
 <template>
     <el-container style="height: 1000px; border: 1px solid #eee">
       <el-main>
-        <el-table v-loading="loading" v-show="showItem" :data="stocklist" style="width: 100%">
+        <el-table v-show="showItem" :data="stocklist" style="width: 100%">
           <el-table-column label="货物编码" prop="g"></el-table-column>
           <el-table-column label="仓库编码" prop="wh"></el-table-column>
           <el-table-column label="库存数量" prop="s_quantity"></el-table-column>
@@ -20,11 +20,8 @@ const basicAuth = 'Basic ' + btoa(username + ':' + password);
       return {
         input: '',
         showItem:false,
-        total:0,  //总数据条数
-        currentpage:1,  //当前所在页默认是第一页
-        pagesize:10,  //每页显示多少行数据 默认设置为10
         stocklist: [],  //这里是从后端获取的所有数据
-        pageTicket:[],//分页后的当前页数据
+
       }
     },
     created () {

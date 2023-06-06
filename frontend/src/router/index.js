@@ -28,11 +28,11 @@ import WarehouseInfo from '@/pages/Stock/WarehouseInfo'
 import StockInfo from '@/pages/Stock/StockInfo'
 import AddWarehouse from '@/pages/Stock/AddWarehouse'
 import ChangeGoods from '@/pages/Stock/ChangeGoods'
+import BuyRecord from '@/pages/Stock/BuyRecord'
 
 import AddTransRecord from '@/pages/Transport/AddTransRecord'
 import TransInfo from '@/pages/Transport/TransInfo'
 import TransRecord from '@/pages/Transport/TransRecord'
-import BuyRecord from '@/pages/Transport/BuyRecord'
 import OutboundRecord from '@/pages/Transport/OutboundRecord'
 import AddTransInfo from '@/pages/Transport/AddTransInfo'
 
@@ -162,9 +162,13 @@ const router = new Router({
         name:'GoodsInfo',
         component:GoodsInfo
       },{
-        path:'/stock_info',
-        name:'StockInfo',
-        component:StockInfo
+        path:'/count_record',
+        name:'CountRecord',
+        component:CountRecord
+      },{
+        path:'/buyrecord',
+        name:'BuyRecord',
+        component:BuyRecord
       },{
         path:'/add_buy',
         name:'AddBuy',
@@ -176,7 +180,7 @@ const router = new Router({
       },{
         path:'/stock_info',
         name:'StockInfo',
-        component:AddOrder
+        component:StockInfo
       },{
         path:'/add_warehouse',
         name:'AddWarehouse',

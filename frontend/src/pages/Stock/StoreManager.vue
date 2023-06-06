@@ -25,6 +25,9 @@
             <el-menu-item index="outbound_record">
               <i class="el-icon-document-checked"></i> 出库记录
             </el-menu-item>
+            <el-menu-item index="buyrecord">
+              <i class="el-icon-notebook-2"></i> 购买记录
+            </el-menu-item>
           </el-submenu>
 
           <el-submenu index="2">

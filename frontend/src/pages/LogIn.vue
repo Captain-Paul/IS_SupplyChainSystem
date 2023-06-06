@@ -57,7 +57,7 @@ export default {
       },
       options: [
         { choice: 'sale', label: '销售管理员' },
-        { choice: 'st', label: '库存管理员' },
+        { choice: 'store', label: '库存管理员' },
         { choice: 'hr', label: '人事管理员' },
         { choice: 'trans', label: '运输管理员' },
         { choice: 'fin', label: '财务管理员' }
@@ -80,7 +80,7 @@ export default {
         // 登录成功，处理响应数据
         console.log('登录成功:', response.data);
         if (this.loginForm.role == 'sale'){this.$router.push('/salemanager')}
-        if (this.loginForm.role == 'st'){this.$router.push('/storemanager')}
+        if (this.loginForm.role == 'store'){this.$router.push('/storemanager')}
         if (this.loginForm.role == 'hr'){this.$router.push('/hrmanager')}
         if (this.loginForm.role == 'trans'){this.$router.push('/transportmanager')}
         if (this.loginForm.role == 'fin'){this.$router.push('/financialmanager')}

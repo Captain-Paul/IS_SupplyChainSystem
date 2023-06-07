@@ -104,27 +104,29 @@ class OrderInfo(models.Model):
             self.order_time = datetime.now()
 
         global count, pre
-        count = len(OrderInfo.objects.filter(order_time__day=int(str(date.today())[-1])))
+        count = len(OrderInfo.objects.filter(order_time__day=date.today().day))
         today = date.today()
         if today != pre:
             count = 0
         count += 1
+
         if not self.order_id or len(self.order_id) < 10:
             ob, _ = OutboundRecord.objects.get_or_create(out_id=self.out_id)
             goods, _ = StockInfo.objects.get_or_create(g_id=self.g_id, wh_id=ob.wh_id, defaults={"s_quantity":0})
             goods.s_quantity = max(goods.s_quantity - self.order_quantity, 0)
             goods.save()
+
             self.order_id = str(date.today()) + str(count)  #将id设置为日期+序号
             super(OrderInfo, self).save(*args, **kwargs)
+
             trans = TransportRecord()
             trans.transport_to = self.client_addr
             trans.wh = ob.wh
             trans.order = self
             trans.save()
-            pre = today
-            return
+        else:
+            super(OrderInfo, self).save(*args, **kwargs)
 
-        super(OrderInfo, self).save(*args, **kwargs)
         pre = today
 
     class Meta:
